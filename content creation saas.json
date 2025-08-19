@@ -1,0 +1,410 @@
+{
+  "name": "My workflow 7",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "content creation",
+        "formDescription": "create the contents on your needs",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "topic",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "tone",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "professional"
+                  },
+                  {
+                    "option": "emotional"
+                  },
+                  {
+                    "option": "Optimism"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "content type",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "newsletter"
+                  },
+                  {
+                    "option": "blog"
+                  },
+                  {
+                    "option": "post"
+                  },
+                  {
+                    "option": "linkedin"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "mail id",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "length",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "short"
+                  },
+                  {
+                    "option": "medium"
+                  },
+                  {
+                    "option": "large"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2cdfc68a-985e-4e61-8fa6-8bdf8a14eb9e",
+      "name": "On form submission",
+      "webhookId": "b2694191-7a8b-47cc-818a-8746f618ecad"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate required fields\nconst requiredFields = ['topic', 'tone', 'content_type'];\nconst input = $input.first().json;\n\n// Map \"content type\" → \"content_type\"\nif (input['content type'] && !input.content_type) {\n  input.content_type = input['content type'];\n}\n\n// Map \"mail id\" → \"email\"\nif (input['mail id'] && !input.email) {\n  input.email = input['mail id'];\n}\n\nif (!requiredFields.every(field => input[field])) {\n  return [{ json: { error: 'Missing required fields' } }];\n}\n\n// Sanitize inputs\nconst sanitized = {\n  topic: input.topic.substring(0, 200),\n  tone: input.tone.toLowerCase(),\n  content_type: input.content_type,\n  length: input.length || 'medium',\n  user_id: input.user_id || 'anonymous',\n  email: input.email || null,\n  timestamp: new Date().toISOString()\n};\n\nreturn [{ json: sanitized }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "ea596829-0f31-4394-ac5a-bac7bb06370d",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.tone }}",
+                    "rightValue": "=professional",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "0e66cbe0-24d3-48f7-a7f4-6bd4f137d919"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "f6a0d044-f2af-4165-973b-c43fc4c635df",
+                    "leftValue": "={{ $json.tone }}",
+                    "rightValue": "casual",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "2badfa24-3caa-4ae7-acd7-aa62ad3e6711",
+                    "leftValue": "={{ $json.tone }}",
+                    "rightValue": "creative",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "5f8466ee-454d-4890-9bf3-f2888e9a0e04",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\n// Define tone-specific guidelines\nconst toneGuidelines = {\n  professional: \"Use formal language and industry terminology. Include credible insights and data-driven points. Structure with clear headings and subheadings. Maintain authoritative voice throughout. Target business professionals and decision-makers.\",\n  \n  casual: \"Use everyday language and relatable examples. Include personal anecdotes or scenarios. Write as if talking to a friend. Use contractions and informal expressions. Make it engaging and easy to read.\",\n  \n  technical: \"Use precise technical terminology. Include specific methodologies and processes. Provide detailed explanations and examples. Reference standards, protocols, or frameworks. Target technical professionals and experts.\",\n  \n  creative: \"Use storytelling elements and metaphors. Include vivid descriptions and imagery. Create emotional connection with readers. Use varied sentence structures and rhythm. Make it memorable and inspiring.\"\n};\n\n// Build clean prompt\nconst guidelines = toneGuidelines[data.tone] || toneGuidelines.professional;\n\nconst prompt = `Write a ${data.length} ${data.content_type} about the topic: ${data.topic}. Use a ${data.tone} tone. ${guidelines} Ensure the content is well-structured and engaging for the target audience.`;\n\nreturn [{ json: { ...data, prompt } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        -112
+      ],
+      "id": "f9e6928b-4a49-4ebc-aa5b-9a2d6f750499",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=AIzaSyBS7yJR5Q3msH0EKfyQIMlszysco1jnDCo",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"{{ $json.prompt }}\"\n        }\n      ]\n    }\n  ],\n  \"generationConfig\": {\n    \"temperature\": 0.7,\n    \"topK\": 64,\n    \"topP\": 0.95,\n    \"maxOutputTokens\": 8192,\n    \"stopSequences\": []\n  },\n  \"safetySettings\": [\n    {\n      \"category\": \"HARM_CATEGORY_HARASSMENT\",\n      \"threshold\": \"BLOCK_MEDIUM_AND_ABOVE\"\n    },\n    {\n      \"category\": \"HARM_CATEGORY_HATE_SPEECH\",\n      \"threshold\": \"BLOCK_MEDIUM_AND_ABOVE\"\n    },\n    {\n      \"category\": \"HARM_CATEGORY_SEXUALLY_EXPLICIT\",\n      \"threshold\": \"BLOCK_MEDIUM_AND_ABOVE\"\n    },\n    {\n      \"category\": \"HARM_CATEGORY_DANGEROUS_CONTENT\",\n      \"threshold\": \"BLOCK_MEDIUM_AND_ABOVE\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        832,
+        -112
+      ],
+      "id": "cf77f3fa-8c95-4dd2-91ad-0832779c57f8",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst response = data.body || data;\nlet content = \"\";\n\n// Extract Gemini output safely\nif (response.candidates && response.candidates.length > 0) {\n  const candidate = response.candidates[0];\n  if (candidate.content && candidate.content.parts) {\n    content = candidate.content.parts\n      .filter(part => part.text)\n      .map(part => part.text)\n      .join('');\n  }\n}\n\n// --- ENHANCED CLEANUP SECTION ---\nlet cleaned = content;\n\n// 1. Handle different types of line breaks\ncleaned = cleaned.replace(/\\\\n/g, \"\\n\");           // Convert literal \\n to actual newlines\ncleaned = cleaned.replace(/\\r\\n/g, \"\\n\");          // Windows line endings\ncleaned = cleaned.replace(/\\r/g, \"\\n\");            // Old Mac line endings\n\n// 2. Clean up markdown formatting (optional - you might want to keep some)\ncleaned = cleaned.replace(/^#{1,6}\\s?/gm, \"\");     // Remove markdown headers\ncleaned = cleaned.replace(/\\*\\*(.*?)\\*\\*/g, \"$1\"); // Remove bold markdown\ncleaned = cleaned.replace(/\\*(.*?)\\*/g, \"$1\");     // Remove italic markdown\n\n// 3. Fix spacing issues\ncleaned = cleaned.replace(/\\n{3,}/g, \"\\n\\n\");     // Max 2 consecutive newlines\ncleaned = cleaned.replace(/[ \\t]+/g, \" \");         // Multiple spaces/tabs to single space\ncleaned = cleaned.replace(/[ \\t]*\\n[ \\t]*/g, \"\\n\"); // Clean whitespace around newlines\n\n// 4. Remove any unwanted prefixes/suffixes that Gemini might add\ncleaned = cleaned.replace(/^(Here's|Here is).*?:/i, \"\"); // Remove intro phrases\ncleaned = cleaned.replace(/I hope this helps.*$/i, \"\");  // Remove outro phrases\n\n// 5. Ensure proper paragraph breaks\ncleaned = cleaned.replace(/\\n([A-Z][^.!?]*[.!?])\\s*\\n([A-Z])/g, \"\\n\\n$1\\n\\n$2\");\n\n// 6. Final cleanup\ncleaned = cleaned.trim();\n\n// --- CONTENT VALIDATION ---\nif (!cleaned || cleaned.length < 10) {\n  return [{\n    json: {\n      error: \"Generated content is too short or empty\",\n      raw_response: content,\n      debug_info: {\n        response_structure: JSON.stringify(response, null, 2).substring(0, 500),\n        candidates_count: response.candidates?.length || 0\n      }\n    }\n  }];\n}\n\n// --- CONTENT ANALYSIS ---\nconst words = cleaned.split(/\\s+/).filter(w => w.length > 0);\nconst sentences = cleaned.split(/[.!?]+/).filter(s => s.trim().length > 0);\nconst paragraphs = cleaned.split(/\\n\\s*\\n/).filter(p => p.trim().length > 0);\n\n// Add comprehensive metadata\nconst result = {\n  content: cleaned,\n  topic: data.topic || null,\n  tone: data.tone || null,\n  content_type: data.content_type || null,\n  \n  // Content metrics\n  word_count: words.length,\n  sentence_count: sentences.length,\n  paragraph_count: paragraphs.length,\n  character_count: cleaned.length,\n  reading_time: Math.ceil(words.length / 200), // minutes\n  \n  // Technical metadata\n  generated_at: new Date().toISOString(),\n  user_id: data.user_id || \"anonymous\",\n  model_used: response.modelVersion || \"gemini-1.5-flash-latest\",\n  tokens_used: response.usageMetadata || {},\n  safety_ratings: response.candidates?.[0]?.safetyRatings || [],\n  \n  // Quality indicators\n  avg_words_per_sentence: Math.round(words.length / sentences.length),\n  avg_sentences_per_paragraph: Math.round(sentences.length / paragraphs.length),\n  \n  // Debug info (remove in production)\n  debug: {\n    original_length: content.length,\n    cleaned_length: cleaned.length,\n    cleanup_ratio: Math.round((cleaned.length / content.length) * 100)\n  }\n};\n\nreturn [{ json: result }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        -112
+      ],
+      "id": "af04d69a-bd5e-486d-bce6-2b63e14bb427",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst content = data.content;\n\nif (!content) {\n  return $input.all();\n}\n\n// Quality assessments\nconst assessments = {\n  length_assessment: (() => {\n    if (data.word_count < 50) return \"too_short\";\n    if (data.word_count > 2000) return \"too_long\";\n    if (data.word_count >= 300 && data.word_count <= 800) return \"optimal\";\n    return \"acceptable\";\n  })(),\n  \n  structure_assessment: (() => {\n    const hasIntro = content.toLowerCase().includes('introduction') || \n                    content.toLowerCase().includes('today') ||\n                    content.toLowerCase().includes('businesses');\n    const hasConclusion = content.toLowerCase().includes('conclusion') || \n                         content.toLowerCase().includes('in summary') ||\n                         content.toLowerCase().includes('finally');\n    \n    if (hasIntro && hasConclusion) return \"well_structured\";\n    if (hasIntro || hasConclusion) return \"partially_structured\";\n    return \"needs_structure\";\n  })(),\n  \n  readability_assessment: (() => {\n    if (data.avg_words_per_sentence <= 15) return \"easy\";\n    if (data.avg_words_per_sentence <= 20) return \"moderate\";\n    return \"complex\";\n  })(),\n  \n  tone_consistency: (() => {\n    const professionalWords = ['efficiency', 'optimization', 'strategic', 'implementation', 'methodology'];\n    const casualWords = ['awesome', 'cool', 'stuff', 'things', 'pretty'];\n    const technicalWords = ['algorithm', 'framework', 'architecture', 'protocol', 'configuration'];\n    \n    const contentLower = content.toLowerCase();\n    const professionalCount = professionalWords.filter(word => contentLower.includes(word)).length;\n    const casualCount = casualWords.filter(word => contentLower.includes(word)).length;\n    const technicalCount = technicalWords.filter(word => contentLower.includes(word)).length;\n    \n    if (data.tone === 'professional' && professionalCount >= casualCount) return \"consistent\";\n    if (data.tone === 'casual' && casualCount >= professionalCount) return \"consistent\";\n    if (data.tone === 'technical' && technicalCount >= casualCount) return \"consistent\";\n    return \"inconsistent\";\n  })()\n};\n\n// Overall quality score (0-100)\nlet qualityScore = 0;\nif (assessments.length_assessment === \"optimal\") qualityScore += 30;\nelse if (assessments.length_assessment === \"acceptable\") qualityScore += 20;\n\nif (assessments.structure_assessment === \"well_structured\") qualityScore += 25;\nelse if (assessments.structure_assessment === \"partially_structured\") qualityScore += 15;\n\nif (assessments.readability_assessment === \"easy\") qualityScore += 25;\nelse if (assessments.readability_assessment === \"moderate\") qualityScore += 20;\nelse qualityScore += 10;\n\nif (assessments.tone_consistency === \"consistent\") qualityScore += 20;\nelse qualityScore += 5;\n\nconst result = {\n  ...data,\n  quality_assessment: {\n    overall_score: qualityScore,\n    grade: qualityScore >= 80 ? \"A\" : qualityScore >= 60 ? \"B\" : qualityScore >= 40 ? \"C\" : \"D\",\n    assessments,\n    recommendations: generateRecommendations(assessments, data)\n  }\n};\n\nfunction generateRecommendations(assessments, data) {\n  const recommendations = [];\n  \n  if (assessments.length_assessment === \"too_short\") {\n    recommendations.push(\"Content is too short. Consider adding more detail, examples, or sections.\");\n  }\n  if (assessments.structure_assessment === \"needs_structure\") {\n    recommendations.push(\"Add clear introduction and conclusion sections to improve structure.\");\n  }\n  if (assessments.readability_assessment === \"complex\") {\n    recommendations.push(\"Simplify sentence structure to improve readability.\");\n  }\n  if (assessments.tone_consistency === \"inconsistent\") {\n    recommendations.push(`Adjust language to better match the requested ${data.tone} tone.`);\n  }\n  \n  return recommendations;\n}\n\nreturn [{ json: result }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        -112
+      ],
+      "id": "019161ce-48f2-4c19-8b9c-ab01459f487f",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst timestamp = new Date().toISOString().replace(/[:.]/g, '-');\nconst filename = `content_${data.user_id}_${timestamp}.json`;\n\nreturn [{\n  json: { ...data, filename, content: JSON.stringify(data, null, 2) }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        -112
+      ],
+      "id": "f918dff8-73b9-4c56-b393-fa6648b333c3",
+      "name": "Code4"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nconst response = {\n  success: true,\n  content_id: data.saved_to?.split('/').pop().replace('.json', '') || null,\n  content: data.content,\n  metadata: {\n    topic: data.topic,\n    tone: data.tone,\n    content_type: data.content_type,\n    word_count: data.word_count,\n    generated_at: data.generated_at\n  },\n  message: 'Content generated successfully!'\n};\n\nreturn [{ json: response }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1664,
+        -96
+      ],
+      "id": "0d96d669-f17b-417c-a971-a701c9964ebd",
+      "name": "Code5"
+    }
+  ],
+  "pinData": {
+    "On form submission": [
+      {
+        "json": {
+          "topic": "n8n automation",
+          "tone": "professional",
+          "content type": "post",
+          "mail id": "nikhildas4990@gmail.com",
+          "length": "medium",
+          "submittedAt": "2025-08-19T19:35:08.425+05:30",
+          "formMode": "test"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Code4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code4": {
+      "main": [
+        [
+          {
+            "node": "Code5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "52da79d7-0a2b-4a67-8c74-208e28b441eb",
+  "meta": {
+    "instanceId": "498c8d987abf533e7b49aae80a0fc3cd9f44e4c4cff8b27f6e96e7e8106ca5b4"
+  },
+  "id": "AIIzZeh8hhjIJDfp",
+  "tags": []
+}
